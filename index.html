@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Team Balancer</title>
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2c3e50;
+            --accent-color: #e74c3c;
+            --light-color: #ecf0f1;
+            --dark-color: #34495e;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--dark-color);
+            background-color: var(--light-color);
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background-color: var(--secondary-color);
+            color: white;
+            border-radius: 8px;
+        }
+        
+        h1 {
+            margin-bottom: 10px;
+        }
+        
+        .description {
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+        }
+        
+        .card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .tab-container {
+            display: flex;
+            margin-bottom: 15px;
+        }
+        
+        .tab {
+            padding: 10px 20px;
+            background-color: #ddd;
+            cursor: pointer;
+            border-radius: 5px 5px 0 0;
+            margin-right: 5px;
+        }
+        
+        .tab.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        input[type="text"], 
+        input[type="number"], 
+        select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+        
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #2980b9;
+        }
+        
+        button.danger {
+            background-color: var(--accent-color);
+        }
+        
+        button.danger:hover {
+            background-color: #c0392b;
+        }
+        
+        .player-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .player-row input[type="text"], .player-row select {
+            flex: 1;
+        }
+        
+        .player-row button {
+            flex: 0 0 40px;
+        }
+        
+        .captain-check {
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+            margin-right: 5px;
+            font-size: 0.9rem;
+        }
+        
+        .captain-check input[type="checkbox"] {
+            margin-right: 4px;
+        }
+        
+        .players-container {
+            margin-bottom: 20px;
+        }
+        
+        .file-upload {
+            border: 2px dashed #ddd;
+            padding: 30px;
+            text-align: center;
+            margin-bottom: 20px;
+            border-radius: 6px;
+        }
+        
+        .csv-preview {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin-top: 15px;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+        }
+        
+        .csv-preview table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+        }
+        
+        .csv-preview th, .csv-preview td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .csv-preview th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+            border-bottom: 2px solid #ddd;
+        }
+        
+        .csv-preview tr:hover {
+            background-color: #f5f5f5;
+        }
+        
+        .strategy-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .strategy-option {
+            display: flex;
+            align-items: center;
+            margin-right: 15px;
+        }
+        
+        .results-container {
+            display: none;
+        }
+        
+        .results-container.active {
+            display: block;
+        }
+        
+        .team-card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .team-header {
+            font-weight: bold;
+            padding-bottom: 10px;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .team-players {
+            list-style-type: none;
+        }
+        
+        .team-players li {
+            padding: 5px 0;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .captain-badge {
+            background-color: var(--primary-color);
+            color: white;
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            border-radius: 10px;
+            margin-left: 8px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .metrics {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+        }
+        
+        .metrics h3 {
+            margin-bottom: 10px;
+        }
+        
+        .metrics-list {
+            list-style-type: none;
+        }
+        
+        .metrics-list li {
+            padding: 5px 0;
+        }
+        
+        .error-message {
+            color: var(--accent-color);
+            margin-top: 5px;
+            font-size: 0.9rem;
+        }
+        
+        .success-message {
+            color: #27ae60;
+            margin-top: 5px;
+            font-size: 0.9rem;
+        }
+        
+        .controls {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 30px;
+            padding: 20px;
+            color: var(--dark-color);
+            font-size: 0.9rem;
+        }
+        
+        /* Toast notification */
+        #toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 10px 20px;
+            border-radius: 4px;
+            color: white;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-weight: bold;
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16);
+        }
+        
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .player-row {
+                flex-direction: column;
+                gap: 5px;
+            }
+            
+            .strategy-options {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .controls {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Team Balancer</h1>
+            <p class="description">Create balanced teams based on player skill tiers for tournaments and competitions</p>
+        </header>
+        
+        <main>
+            <!-- Input Section -->
+            <section class="card">
+                <h2>Player Information</h2>
+                <div class="tab-container">
+                    <div class="tab active" id="tab-manual">Manual Entry</div>
+                    <div class="tab" id="tab-csv">CSV Upload</div>
+                </div>
+                
+                <!-- Manual Entry -->
+                <div class="tab-content active" id="content-manual">
+                    <div class="players-container" id="players-container">
+                        <div class="player-row">
+                            <input type="text" placeholder="Player Name" required>
+                            <select required>
+                                <option value="" disabled selected>Select Tier</option>
+                                <option value="S+">S+</option>
+                                <option value="S">S</option>
+                                <option value="S/A">S/A</option>
+                                <option value="A">A</option>
+                                <option value="A/B">A/B</option>
+                                <option value="B">B</option>
+                                <option value="C">C</option>
+                                <option value="D">D</option>
+                                <option value="F">F</option>
+                            </select>
+                            <div class="captain-check">
+                                <input type="checkbox" title="Team Captain">
+                                <span>Captain</span>
+                            </div>
+                            <button class="danger" title="Remove player">-</button>
+                        </div>
+                    </div>
+                    <button id="add-player">Add Player</button>
+                    <p class="description">Captains will be placed on different teams automatically. The number of captains cannot exceed the number of teams.</p>
+                </div>
+                
+                <!-- CSV Upload -->
+                <div class="tab-content" id="content-csv">
+                    <div class="file-upload" id="file-upload-area">
+                        <p>Drag and drop a CSV file here or</p>
+                        <input type="file" id="csv-file-input" accept=".csv" style="display: none;">
+                        <button id="browse-files">Browse Files</button>
+                        <p class="description">CSV should have columns: Name, Tier</p>
+                        <a href="#" id="download-template">Download Template</a>
+                    </div>
+                    <div class="csv-preview" id="csv-preview">
+                        <p>CSV data will appear here</p>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Team Configuration -->
+            <section class="card">
+                <h2>Team Configuration</h2>
+                <div class="form-group">
+                    <label for="num-teams">Number of Teams</label>
+                    <input type="number" id="num-teams" min="2" value="2" required>
+                    <p class="description">The total number of players must be evenly divisible by the number of teams</p>
+                </div>
+                
+                <div class="form-group">
+                    <label>Balancing Strategy</label>
+                    <div class="strategy-options">
+                        <div class="strategy-option">
+                            <input type="radio" id="strategy-round-robin" name="strategy" value="round_robin" checked>
+                            <label for="strategy-round-robin">Round Robin</label>
+                        </div>
+                        <div class="strategy-option">
+                            <input type="radio" id="strategy-random" name="strategy" value="random">
+                            <label for="strategy-random">Random</label>
+                        </div>
+                        <div class="strategy-option">
+                            <input type="radio" id="strategy-cluster" name="strategy" value="cluster">
+                            <label for="strategy-cluster">Cluster</label>
+                        </div>
+                        <div class="strategy-option">
+                            <input type="radio" id="strategy-snake" name="strategy" value="snake">
+                            <label for="strategy-snake">Snake Draft</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <button id="generate-teams">Generate Teams</button>
+                <div id="input-error" class="error-message"></div>
+            </section>
+            
+            <!-- Results Section -->
+            <section class="results-container" id="results-container">
+                <h2>Team Distributions</h2>
+                <div class="controls">
+                    <button id="copy-results">Copy Results</button>
+                    <button id="download-results">Download as CSV</button>
+                    <button id="reset-form" class="danger">Reset Form</button>
+                </div>
+                
+                <div id="teams-display">
+                    <!-- Team cards will be inserted here by JavaScript -->
+                </div>
+                
+                <div class="metrics" id="metrics-display">
+                    <h3>Evaluation Metrics</h3>
+                    <ul class="metrics-list">
+                        <li>Strength variance: <span id="strength-variance">0.00</span></li>
+                        <li>Max strength difference: <span id="strength-diff">0</span></li>
+                        <li>Tier imbalance score: <span id="tier-imbalance">0.00</span></li>
+                        <li>Overall balance score: <span id="overall-score">0.00</span> (lower is better)</li>
+                    </ul>
+                </div>
+            </section>
+        </main>
+        
+        <footer>
+            <p>Team Balancer Tool | Created for tournament organization</p>
+        </footer>
+    </div>
+    
+    <script>
+        // Tab functionality
+        document.getElementById('tab-manual').addEventListener('click', function() {
+            document.getElementById('tab-manual').classList.add('active');
+            document.getElementById('tab-csv').classList.remove('active');
+            document.getElementById('content-manual').classList.add('active');
+            document.getElementById('content-csv').classList.remove('active');
+        });
+        
+        document.getElementById('tab-csv').addEventListener('click', function() {
+            document.getElementById('tab-csv').classList.add('active');
+            document.getElementById('tab-manual').classList.remove('active');
+            document.getElementById('content-csv').classList.add('active');
+            document.getElementById('content-manual').classList.remove('active');
+        });
+        
+        // Placeholder for future JavaScript implementation
+        document.getElementById('add-player').addEventListener('click', function() {
+            // This will be implemented in the JavaScript module
+            console.log('Add player functionality will be implemented');
+        });
+        
+        document.getElementById('browse-files').addEventListener('click', function() {
+            document.getElementById('csv-file-input').click();
+        });
+        
+        document.getElementById('generate-teams').addEventListener('click', function() {
+            // This will be implemented in the JavaScript module
+            console.log('Generate teams functionality will be implemented');
+            // For now, just show the results container for preview
+            document.getElementById('results-container').classList.add('active');
+        });
+        
+        document.getElementById('reset-form').addEventListener('click', function() {
+            // This will be implemented in the JavaScript module
+            console.log('Reset form functionality will be implemented');
+            document.getElementById('results-container').classList.remove('active');
+        });
+        
+        // File upload area - visual feedback
+        const fileUploadArea = document.getElementById('file-upload-area');
+        
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            fileUploadArea.addEventListener(eventName, preventDefaults, false);
+        });
+        
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        
+        ['dragenter', 'dragover'].forEach(eventName => {
+            fileUploadArea.addEventListener(eventName, highlight, false);
+        });
+        
+        ['dragleave', 'drop'].forEach(eventName => {
+            fileUploadArea.addEventListener(eventName, unhighlight, false);
+        });
+        
+        function highlight() {
+            fileUploadArea.style.borderColor = '#3498db';
+            fileUploadArea.style.backgroundColor = 'rgba(52, 152, 219, 0.1)';
+        }
+        
+        function unhighlight() {
+            fileUploadArea.style.borderColor = '#ddd';
+            fileUploadArea.style.backgroundColor = 'transparent';
+        }
+    </script>
+    
+    <!-- Team Balancer Core and App JavaScript -->
+    <script src="teamBalancer.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
+
