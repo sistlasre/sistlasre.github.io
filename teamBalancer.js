@@ -18,6 +18,8 @@ const DEFAULT_TIER_SCORES = {
     'F': -1
 };
 
+const DEFAULT_TIER_ORDER = ['S+', 'S', 'S/A', 'A', 'A/B', 'B', 'C', 'D', 'F'];
+
 // Valid tiers set for validation
 const VALID_TIERS = new Set(Object.keys(DEFAULT_TIER_SCORES));
 
@@ -25,16 +27,16 @@ const VALID_TIERS = new Set(Object.keys(DEFAULT_TIER_SCORES));
  * Player class to represent a player with name, tier, score, and captain status
  */
 class Player {
-    constructor(name, tier, score = null, captain = false) {
+    constructor(name, tier, isCaptain = false) {
         this.name = name;
         this.tier = tier;
-        this.score = score !== null ? score : DEFAULT_TIER_SCORES[tier];
-        this.captain = captain;
+        this.score = DEFAULT_TIER_SCORES[tier];
+        this.isCaptain = isCaptain;
     }
 
     // Create a clone of this player
     clone() {
-        return new Player(this.name, this.tier, this.score, this.captain);
+        return new Player(this.name, this.tier, this.isCaptain);
     }
 }
 
@@ -109,7 +111,7 @@ function loadPlayersFromCSV(csvContent, customWeights = null) {
             continue;
         }
         
-        players.push(new Player(name, tier, tierScores[tier], isCaptain));
+        players.push(new Player(name, tier, isCaptain));
         seenNames.add(name);
     }
     
@@ -121,7 +123,7 @@ function loadPlayersFromCSV(csvContent, customWeights = null) {
  * @returns {string} CSV template content
  */
 function createCSVTemplate() {
-    return 'Name,Tier,Captain\nPlayer 1,S,Yes\nPlayer 2,A,No\nPlayer 3,B,No';
+    return 'Name,Tier\nPlayer 1,S\nPlayer 2,A\nPlayer 3,B';
 }
 
 /**
@@ -134,7 +136,7 @@ function generateResultsCSV(teams) {
     
     teams.forEach((team, teamIndex) => {
         team.forEach(player => {
-            csvContent += `Team ${teamIndex + 1},${player.name},${player.tier},${player.captain ? 'Yes' : 'No'}\n`;
+            csvContent += `Team ${teamIndex + 1},${player.name},${player.tier},${player.isCaptain ? 'Yes' : 'No'}\n`;
         });
     });
     
@@ -167,7 +169,7 @@ function validatePlayerCount(players, numTeams) {
     }
     
     // Check that the number of captains doesn't exceed the number of teams
-    const captainCount = players.filter(player => player.captain).length;
+    const captainCount = players.filter(player => player.isCaptain).length;
     if (captainCount > numTeams) {
         throw new Error(`Number of captains (${captainCount}) exceeds the number of teams (${numTeams}). Each team can have at most one captain.`);
     }
@@ -240,8 +242,8 @@ function evaluateTeams(teams) {
  */
 function distributeTeamsRoundRobin(players, numTeams, playersPerTeam) {
     // Separate captains from regular players
-    const captains = players.filter(player => player.captain);
-    const nonCaptains = players.filter(player => !player.captain);
+    const captains = players.filter(player => player.isCaptain);
+    const nonCaptains = players.filter(player => !player.isCaptain);
     
     // Initialize teams
     const teams = Array(numTeams).fill().map(() => []);
@@ -301,8 +303,8 @@ function distributeTeamsRoundRobin(players, numTeams, playersPerTeam) {
  */
 function distributeTeamsRandom(players, numTeams, playersPerTeam) {
     // Separate captains from regular players
-    const captains = players.filter(player => player.captain);
-    const nonCaptains = players.filter(player => !player.captain);
+    const captains = players.filter(player => player.isCaptain);
+    const nonCaptains = players.filter(player => !player.isCaptain);
     
     // Initialize teams
     const teams = Array(numTeams).fill().map(() => []);
@@ -363,8 +365,8 @@ function distributeTeamsRandom(players, numTeams, playersPerTeam) {
  */
 function distributeTeamsSnake(players, numTeams, playersPerTeam) {
     // Separate captains from regular players
-    const captains = players.filter(player => player.captain);
-    const nonCaptains = players.filter(player => !player.captain);
+    const captains = players.filter(player => player.isCaptain);
+    const nonCaptains = players.filter(player => !player.isCaptain);
     
     // Initialize teams
     const teams = Array(numTeams).fill().map(() => []);
@@ -375,7 +377,24 @@ function distributeTeamsSnake(players, numTeams, playersPerTeam) {
     });
     
     // Sort non-captain players by score in descending order
-    const sortedPlayers = [...nonCaptains].sort((a, b) => b.score - a.score);
+    const sortedPlayersA = [...nonCaptains].sort((a, b) => b.score - a.score);
+    const sortedPlayers = [];
+    // Sort remaining players by tier
+    const playersByTier = {};
+    nonCaptains.forEach(player => {
+        if (!playersByTier[player.tier]) {
+            playersByTier[player.tier] = [];
+        }
+        playersByTier[player.tier].push(player);
+    });
+    DEFAULT_TIER_ORDER.forEach(tier => {
+        if (tier in playersByTier) {
+            const playersInTier = [...playersByTier[tier]];
+            playersInTier.sort( () => Math.random()-0.5 );
+            sortedPlayers.push(...playersInTier);
+        }
+    });
+    debugger;
     
     // Determine the starting position for the snake draft
     // Skip teams that already have a captain
@@ -433,8 +452,8 @@ function distributeTeamsSnake(players, numTeams, playersPerTeam) {
  */
 function distributeTeamsCluster(players, numTeams, playersPerTeam) {
     // Separate captains from regular players
-    const captains = players.filter(player => player.captain);
-    const nonCaptains = players.filter(player => !player.captain);
+    const captains = players.filter(player => player.isCaptain);
+    const nonCaptains = players.filter(player => !player.isCaptain);
     
     // Initialize teams
     const teams = Array(numTeams).fill().map(() => []);
@@ -681,8 +700,8 @@ function formatTeamsForDisplay(teams) {
         
         // Keep captains at the top, then sort by tier
         const sortedTeam = [...team].sort((a, b) => {
-            if (a.captain && !b.captain) return -1;
-            if (!a.captain && b.captain) return 1;
+            if (a.isCaptain && !b.isCaptain) return -1;
+            if (!a.isCaptain && b.isCaptain) return 1;
             return tierOrder[a.tier] - tierOrder[b.tier];
         });
         
@@ -692,7 +711,7 @@ function formatTeamsForDisplay(teams) {
             players: sortedTeam.map(player => ({
                 name: player.name,
                 tier: player.tier,
-                captain: player.captain
+                isCaptain: player.isCaptain
             }))
         };
     });
