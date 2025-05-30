@@ -44,10 +44,10 @@ document.addEventListener('DOMContentLoaded', function() {
         // Clear any existing player rows and add a single empty row
         playersContainer.innerHTML = '';
         addPlayerRow();
-        
+
         // Reset error messages
         setErrorMessage('');
-        
+
         // Add event listeners
         setupEventListeners();
     }
@@ -59,29 +59,29 @@ document.addEventListener('DOMContentLoaded', function() {
         // Player management
         addPlayerBtn.addEventListener('click', addPlayerRow);
         playersContainer.addEventListener('click', handlePlayerRowClicks);
-        
+
         // Team generation
         generateTeamsBtn.addEventListener('click', generateTeams);
         resetFormBtn.addEventListener('click', resetForm);
-        
+
         // Results actions
         copyResultsBtn.addEventListener('click', copyResultsToClipboard);
         downloadResultsBtn.addEventListener('click', downloadResults);
-        
+
         // CSV handling
         csvFileInput.addEventListener('change', handleFileSelect);
         browseFilesBtn.addEventListener('click', () => csvFileInput.click());
         downloadTemplateBtn.addEventListener('click', downloadTemplate);
-        
+
         // Tab switching
         document.getElementById('tab-manual').addEventListener('click', () => {
             activeInputMethod = 'manual';
         });
-        
+
         document.getElementById('tab-csv').addEventListener('click', () => {
             activeInputMethod = 'csv';
         });
-        
+
         // File drop handling
         fileUploadArea.addEventListener('drop', handleFileDrop);
     }
@@ -92,17 +92,17 @@ document.addEventListener('DOMContentLoaded', function() {
     function addPlayerRow() {
         const playerRow = document.createElement('div');
         playerRow.className = 'player-row';
-        
+
         // Create name input
         const nameInput = document.createElement('input');
         nameInput.type = 'text';
         nameInput.placeholder = 'Player Name';
         nameInput.required = true;
-        
+
         // Create tier select
         const tierSelect = document.createElement('select');
         tierSelect.required = true;
-        
+
         // Add default option
         const defaultOption = document.createElement('option');
         defaultOption.value = '';
@@ -110,7 +110,7 @@ document.addEventListener('DOMContentLoaded', function() {
         defaultOption.disabled = true;
         defaultOption.selected = true;
         tierSelect.appendChild(defaultOption);
-        
+
         // Add tier options
         const tiers = Array.from(TeamBalancer.VALID_TIERS);
         tiers.sort((a, b) => {
@@ -120,44 +120,44 @@ document.addEventListener('DOMContentLoaded', function() {
             };
             return tierOrder[a] - tierOrder[b];
         });
-        
+
         tiers.forEach(tier => {
             const option = document.createElement('option');
             option.value = tier;
             option.textContent = tier;
             tierSelect.appendChild(option);
         });
-        
+
         // Create captain checkbox container
         const captainCheck = document.createElement('div');
         captainCheck.className = 'captain-check';
-        
+
         // Create captain checkbox
         const captainCheckbox = document.createElement('input');
         captainCheckbox.type = 'checkbox';
         captainCheckbox.title = 'Team Captain';
-        
+
         // Create captain label
         const captainLabel = document.createElement('span');
         captainLabel.textContent = 'Captain';
-        
+
         // Assemble captain checkbox and label
         captainCheck.appendChild(captainCheckbox);
         captainCheck.appendChild(captainLabel);
-        
+
         // Create remove button
         const removeBtn = document.createElement('button');
         removeBtn.className = 'danger';
         removeBtn.title = 'Remove player';
         removeBtn.textContent = '-';
         removeBtn.dataset.action = 'remove-player';
-        
+
         // Append elements to row
         playerRow.appendChild(nameInput);
         playerRow.appendChild(tierSelect);
         playerRow.appendChild(captainCheck);
         playerRow.appendChild(removeBtn);
-        
+
         // Append row to container
         playersContainer.appendChild(playerRow);
     }
@@ -182,7 +182,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function handleFileSelect(e) {
         const file = e.target.files[0];
         if (!file) return;
-        
+
         parseCSVFile(file);
     }
 
@@ -192,7 +192,7 @@ document.addEventListener('DOMContentLoaded', function() {
      */
     function handleFileDrop(e) {
         e.preventDefault();
-        
+
         if (e.dataTransfer.items) {
             for (let i = 0; i < e.dataTransfer.items.length; i++) {
                 if (e.dataTransfer.items[i].kind === 'file') {
@@ -224,15 +224,15 @@ document.addEventListener('DOMContentLoaded', function() {
      */
     function parseCSVFile(file) {
         const reader = new FileReader();
-        
+
         reader.onload = function(e) {
             try {
                 const content = e.target.result;
                 csvData = content;
-                
+
                 // Display preview
                 displayCSVPreview(content);
-                
+
                 // Clear any error messages
                 setErrorMessage('');
             } catch (error) {
@@ -240,12 +240,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 csvData = null;
             }
         };
-        
+
         reader.onerror = function() {
             setErrorMessage('Error reading file');
             csvData = null;
         };
-        
+
         reader.readAsText(file);
     }
 
@@ -259,20 +259,20 @@ document.addEventListener('DOMContentLoaded', function() {
         const table = checkbox.closest('table');
         const captainCheckboxes = table.querySelectorAll('.captain-checkbox');
         let captainCount = 0;
-        
+
         captainCheckboxes.forEach(cb => {
             if (cb.checked) captainCount++;
         });
-        
+
         if (captainCount > numTeams) {
             checkbox.checked = false;
             showToast(`Cannot have more captains (${captainCount}) than teams (${numTeams})`, true);
             return false;
         }
-        
+
         return true;
     }
-    
+
     /**
      * Display a preview of the CSV data
      * @param {string} content - CSV content as string
@@ -283,7 +283,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (lines.length === 0) {
                 throw new Error('CSV file is empty');
             }
-            
+
             // Create a container for the scrollable table with sticky header
             const tableContainer = document.createElement('div');
             tableContainer.className = 'csv-table-container';
@@ -293,21 +293,23 @@ document.addEventListener('DOMContentLoaded', function() {
             tableContainer.style.marginBottom = '15px';
             tableContainer.style.border = '1px solid #ddd';
             tableContainer.style.borderRadius = '4px';
-            
+
             // Create table for preview
             const table = document.createElement('table');
             table.classList.add('csv-preview-table');
             table.style.width = '100%';
             table.style.borderCollapse = 'collapse';
-            
+
             // Create header row
             const headerRow = document.createElement('tr');
             const headerColumns = lines[0].split(',');
-            
-            // Find if there's a captain column and its index
+
+            // Find if there's a captain and tier column and their indices
             const captainColIndex = headerColumns.findIndex(col => 
                 col.trim().toLowerCase() === 'captain');
-            
+            const tierColIndex = headerColumns.findIndex(col => 
+                col.trim().toLowerCase() === 'tier');
+
             // Apply header style with captain status emphasis
             headerColumns.forEach(col => {
                 const th = document.createElement('th');
@@ -318,14 +320,29 @@ document.addEventListener('DOMContentLoaded', function() {
                 th.style.borderBottom = '2px solid #ddd';
                 th.style.padding = '10px';
                 th.style.zIndex = '1';
-                
-                if (col.trim().toLowerCase() === 'captain') {
+
+                if (col.trim().toLowerCase() === 'captain' || col.trim().toLowerCase() === 'tier') {
                     th.style.color = 'var(--primary-color)';
                     th.style.fontWeight = 'bold';
                 }
                 headerRow.appendChild(th);
             });
-            
+
+            // Add manual tier column if it doesn't exist
+            if (tierColIndex === -1) {
+                const tierHeader = document.createElement('th');
+                tierHeader.textContent = 'Tier';
+                tierHeader.style.color = 'var(--primary-color)';
+                tierHeader.style.fontWeight = 'bold';
+                tierHeader.style.position = 'sticky';
+                tierHeader.style.top = '0';
+                tierHeader.style.backgroundColor = '#f9f9f9';
+                tierHeader.style.borderBottom = '2px solid #ddd';
+                tierHeader.style.padding = '10px';
+                tierHeader.style.zIndex = '1';
+                headerRow.appendChild(tierHeader);
+            }
+
             // Add manual captain column if it doesn't exist
             if (captainColIndex === -1) {
                 const captainHeader = document.createElement('th');
@@ -340,38 +357,38 @@ document.addEventListener('DOMContentLoaded', function() {
                 captainHeader.style.zIndex = '1';
                 headerRow.appendChild(captainHeader);
             }
-            
+
             table.appendChild(headerRow);
-            
+
             // Create data rows - show ALL rows, not just 10
             let validRowCount = 0;
             for (let i = 1; i < lines.length; i++) {
                 const line = lines[i].trim();
                 if (!line) continue;
-                
+
                 validRowCount++;
                 const row = document.createElement('tr');
                 row.dataset.playerIndex = i - 1; // Store player index for later reference
                 const columns = line.split(',');
-                
+
                 // Apply alternating row colors for better readability
                 if (validRowCount % 2 === 0) {
                     row.style.backgroundColor = '#f5f5f5';
                 }
-                
+
                 columns.forEach((col, index) => {
                     const td = document.createElement('td');
                     td.style.padding = '8px';
                     td.style.borderBottom = '1px solid #ddd';
-                    
+
                     const value = col.trim();
-                    
-                    // Special handling for captain column
+
+                    // Special handling for captain and tier columns
                     if (headerColumns[index].trim().toLowerCase() === 'captain') {
                         const isCaptain = value.toLowerCase() === 'true' || 
                                           value === '1' || 
                                           value.toLowerCase() === 'yes';
-                        
+
                         // Create checkbox for captain status
                         const checkbox = document.createElement('input');
                         checkbox.type = 'checkbox';
@@ -380,21 +397,96 @@ document.addEventListener('DOMContentLoaded', function() {
                         checkbox.addEventListener('change', function() {
                             validateCaptainCount(this);
                         });
-                        
+
                         td.appendChild(checkbox);
+                    } else if (headerColumns[index].trim().toLowerCase() === 'tier') {
+                        // Create dropdown for tier selection
+                        const tierSelect = document.createElement('select');
+                        tierSelect.className = 'tier-dropdown';
+
+                        // Add tier options
+                        const tiers = Array.from(TeamBalancer.VALID_TIERS);
+                        tiers.sort((a, b) => {
+                            // Custom sort to keep tiers in order from highest to lowest
+                            const tierOrder = {
+                                'S+': 0, 'S': 1, 'S/A': 2, 'A': 3, 'A/B': 4, 'B': 5, 'C': 6, 'D': 7, 'F': 8
+                            };
+                            return tierOrder[a] - tierOrder[b];
+                        });
+
+                        // Add empty option
+                        const emptyOption = document.createElement('option');
+                        emptyOption.value = '';
+                        emptyOption.textContent = 'Select Tier';
+                        tierSelect.appendChild(emptyOption);
+
+                        tiers.forEach(tier => {
+                            const option = document.createElement('option');
+                            option.value = tier;
+                            option.textContent = tier;
+
+                            // Select the current tier if it matches
+                            if (value.toUpperCase() === tier) {
+                                option.selected = true;
+                            }
+
+                            tierSelect.appendChild(option);
+                        });
+
+                        td.appendChild(tierSelect);
                     } else {
                         td.textContent = value;
                     }
-                    
+
                     row.appendChild(td);
                 });
-                
+
+                // Add manual tier dropdown if no tier column exists
+                if (tierColIndex === -1) {
+                    const tierTd = document.createElement('td');
+                    tierTd.style.padding = '8px';
+                    tierTd.style.borderBottom = '1px solid #ddd';
+
+                    // Create dropdown for tier selection
+                    const tierSelect = document.createElement('select');
+                    tierSelect.className = 'tier-dropdown';
+
+                    // Add tier options
+                    const tiers = Array.from(TeamBalancer.VALID_TIERS);
+                    tiers.sort((a, b) => {
+                        // Custom sort to keep tiers in order from highest to lowest
+                        const tierOrder = {
+                            'S+': 0, 'S': 1, 'S/A': 2, 'A': 3, 'A/B': 4, 'B': 5, 'C': 6, 'D': 7, 'F': 8
+                        };
+                        return tierOrder[a] - tierOrder[b];
+                    });
+
+                    // Add default option
+                    const defaultOption = document.createElement('option');
+                    defaultOption.value = 'B'; // Default tier
+                    defaultOption.textContent = 'B';
+                    defaultOption.selected = true;
+                    tierSelect.appendChild(defaultOption);
+
+                    tiers.forEach(tier => {
+                        if (tier !== 'B') { // Skip B since it's already the default
+                            const option = document.createElement('option');
+                            option.value = tier;
+                            option.textContent = tier;
+                            tierSelect.appendChild(option);
+                        }
+                    });
+
+                    tierTd.appendChild(tierSelect);
+                    row.appendChild(tierTd);
+                }
+
                 // Add manual captain checkbox if no captain column exists
                 if (captainColIndex === -1) {
                     const captainTd = document.createElement('td');
                     captainTd.style.padding = '8px';
                     captainTd.style.borderBottom = '1px solid #ddd';
-                    
+
                     const checkbox = document.createElement('input');
                     checkbox.type = 'checkbox';
                     checkbox.className = 'captain-checkbox';
@@ -404,28 +496,28 @@ document.addEventListener('DOMContentLoaded', function() {
                     captainTd.appendChild(checkbox);
                     row.appendChild(captainTd);
                 }
-                
+
                 table.appendChild(row);
             }
-            
+
             // Add table to container
             tableContainer.appendChild(table);
-            
+
             // Update preview area
             csvPreview.innerHTML = '';
             csvPreview.appendChild(tableContainer);
-            
+
             // Add row count info
             const rowInfo = document.createElement('p');
             const nonEmptyLines = lines.filter((line, index) => index > 0 && line.trim());
             rowInfo.textContent = `Total players: ${nonEmptyLines.length} rows shown`;
             csvPreview.appendChild(rowInfo);
-            
-            // Add hint about captain selection
-            const captainHint = document.createElement('p');
-            captainHint.className = 'description';
-            captainHint.textContent = 'You can check/uncheck captain boxes to designate team captains. The number of captains cannot exceed the number of teams.';
-            csvPreview.appendChild(captainHint);
+
+            // Add hint about captain and tier selection
+            const hint = document.createElement('p');
+            hint.className = 'description';
+            hint.textContent = 'You can check/uncheck captain boxes and change tier values for each player. The number of captains cannot exceed the number of teams.';
+            csvPreview.appendChild(hint);
         } catch (error) {
             csvPreview.innerHTML = `<p class="error-message">Error previewing CSV: ${error.message}</p>`;
         }
@@ -438,36 +530,36 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             // Clear any previous error messages
             setErrorMessage('');
-            
+
             // Get number of teams
             const numTeams = parseInt(numTeamsInput.value, 10);
             if (isNaN(numTeams) || numTeams < 2) {
                 throw new Error('Number of teams must be at least 2');
             }
-            
+
             // Get selected strategy
             const strategyElements = document.getElementsByName('strategy');
             let selectedStrategy = 'round_robin'; // Default
-            
+
             for (const element of strategyElements) {
                 if (element.checked) {
                     selectedStrategy = element.value;
                     break;
                 }
             }
-            
+
             // Get players based on active input method
             let players = [];
-            
+
             if (activeInputMethod === 'manual') {
                 players = getPlayersFromForm();
             } else {
                 players = getPlayersFromCSV();
             }
-            
+
             // Validate player count
             const playersPerTeam = TeamBalancer.validatePlayerCount(players, numTeams);
-            
+
             // Create team distribution
             const distribution = TeamBalancer.createTeamDistribution(
                 selectedStrategy,
@@ -475,16 +567,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 numTeams,
                 playersPerTeam
             );
-            
+
             // Store results for later use
             currentResults = distribution;
-            
+
             // Display results
             displayResults(distribution);
-            
+
             // Show results container
             resultsContainer.classList.add('active');
-            
+
             // Scroll to results
             resultsContainer.scrollIntoView({ behavior: 'smooth' });
         } catch (error) {
@@ -503,42 +595,42 @@ document.addEventListener('DOMContentLoaded', function() {
         const seenNames = new Set();
         const numTeams = parseInt(numTeamsInput.value, 10);
         let captainCount = 0;
-        
+
         for (const row of playerRows) {
             const nameInput = row.querySelector('input[type="text"]');
             const tierSelect = row.querySelector('select');
             const captainCheckbox = row.querySelector('.captain-check input[type="checkbox"]');
-            
+
             const name = nameInput.value.trim();
             const tier = tierSelect.value;
             const isCaptain = captainCheckbox.checked;
-            
+
             if (isCaptain) {
                 captainCount++;
                 if (captainCount > numTeams) {
                     throw new Error(`Cannot have more captains (${captainCount}) than teams (${numTeams})`);
                 }
             }
-            
+
             // Validate player
             const validation = TeamBalancer.validatePlayer(name, tier);
             if (!validation.isValid) {
                 throw new Error(validation.message);
             }
-            
+
             // Check for duplicate names
             if (seenNames.has(name)) {
                 throw new Error(`Duplicate player name: ${name}`);
             }
-            
+
             players.push(new TeamBalancer.Player(name, tier, isCaptain));
             seenNames.add(name);
         }
-        
+
         if (players.length === 0) {
             throw new Error('No players provided');
         }
-        
+
         return players;
     }
 
@@ -550,14 +642,14 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!csvData) {
             throw new Error('No CSV data provided');
         }
-        
+
         // Get basic player data from CSV
         const players = TeamBalancer.loadPlayersFromCSV(csvData);
-        
+
         if (players.length === 0) {
             throw new Error('No valid players found in CSV');
         }
-        
+
         try {
             // Update captain status from UI checkboxes
             const table = csvPreview.querySelector('.csv-preview-table');
@@ -565,109 +657,130 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.warn('CSV preview table not found');
                 return players;
             }
-            
+
             const rows = table.querySelectorAll('tr');
             if (rows.length < 2) { // Need at least header + 1 data row
                 console.warn('No data rows found in CSV preview');
                 return players;
             }
-            
+
             // Get header cells to find the name column
             const headerRow = rows[0];
             const headerCells = Array.from(headerRow.cells).map(cell => 
                 cell.textContent.trim().toLowerCase()
             );
-            
-            // Find name column index
+
+            // Find name and tier column indices
             const nameColIndex = headerCells.indexOf('name');
+            const tierColIndex = headerCells.indexOf('tier');
             if (nameColIndex === -1) {
                 console.warn('Name column not found in CSV preview');
                 return players;
             }
-            
+
             // Create a case-insensitive map of player names to player objects
             const playerMap = new Map(
                 players.map(player => [player.name.toLowerCase(), player])
             );
-            
+
             // Track captain count
             let captainCount = 0;
             const numTeams = parseInt(numTeamsInput.value, 10);
             const captainUpdates = []; // For logging purposes
-            
+
             // First pass - count existing captains from original data
             players.forEach(player => {
                 if (player.isCaptain) captainCount++;
             });
-            
+
             console.log(`Initial captain count: ${captainCount}`);
-            
+
             // Second pass - process each data row (skip header)
             for (let i = 1; i < rows.length; i++) {
                 const row = rows[i];
                 if (!row.cells || row.cells.length <= nameColIndex) continue;
-                
+
                 const nameCell = row.cells[nameColIndex];
                 if (!nameCell) continue;
-                
+
                 const name = nameCell.textContent.trim();
                 if (!name) continue;
-                
+
                 // Find player by name (case insensitive)
                 const player = playerMap.get(name.toLowerCase());
                 if (!player) {
                     console.warn(`Player not found for name: ${name}`);
                     continue;
                 }
-                
+
                 // Get captain checkbox
                 const captainCheckbox = row.querySelector('.captain-checkbox');
                 if (!captainCheckbox) {
                     console.warn(`Captain checkbox not found for player: ${name}`);
                     continue;
                 }
-                
+
+                // Get tier dropdown
+                const tierDropdown = row.querySelector('.tier-dropdown');
+                if (tierDropdown) {
+                    const newTier = tierDropdown.value;
+                    if (newTier && newTier !== player.tier) {
+                        console.log(`Updating tier for ${name} from ${player.tier} to ${newTier}`);
+                        player.tier = newTier;
+                        player.score = TeamBalancer.DEFAULT_TIER_SCORES[newTier];
+                    }
+                }
+
                 // Update captain status
                 const wasCaptain = player.isCaptain;
                 const willBeCaptain = captainCheckbox.checked;
-                
+
                 // Only update if there's a change
                 if (wasCaptain !== willBeCaptain) {
                     // Calculate new captain count before making changes
                     const newCaptainCount = willBeCaptain ? captainCount + 1 : captainCount - 1;
-                    
+
                     // Validate captain count
                     if (willBeCaptain && newCaptainCount > numTeams) {
                         // Revert the checkbox state without updating player
                         captainCheckbox.checked = false;
                         console.warn(`Prevented excess captain: ${newCaptainCount} vs ${numTeams} teams`);
-                        
+
                         // Don't throw here, just prevent the change
                         showToast(`Cannot have more captains (${numTeams + 1}) than teams (${numTeams})`, true);
                         continue;
                     }
-                    
+
                     // Apply the change to player object
                     player.isCaptain = willBeCaptain;
-                    
+
                     // Update captain count after successful change
                     captainCount = newCaptainCount;
-                    
+
                     // Log the change
                     const changeType = willBeCaptain ? 'added' : 'removed';
                     captainUpdates.push(`${name}: ${changeType}`);
                     console.log(`Captain ${changeType} for ${name} (total: ${captainCount}/${numTeams})`);
                 }
             }
-            
+
             // Log captain updates
             if (captainUpdates.length > 0) {
                 console.log(`Captain updates: ${captainUpdates.join(', ')}`);
             }
             console.log(`Final captain count: ${captainCount} of ${numTeams} teams`);
-            
+
+            // Validate tiers
+            for (const player of players) {
+                if (!TeamBalancer.VALID_TIERS.has(player.tier)) {
+                    console.warn(`Player ${player.name} has invalid tier ${player.tier}, setting to default tier B`);
+                    player.tier = 'B';
+                    player.score = TeamBalancer.DEFAULT_TIER_SCORES['B'];
+                }
+            }
+
             return players;
-            
+
         } catch (error) {
             console.error('Error updating captain status:', error);
             throw new Error(`Failed to update captain status: ${error.message}`);
@@ -681,10 +794,10 @@ document.addEventListener('DOMContentLoaded', function() {
     function displayResults(distribution) {
         // Format teams for display
         const formattedTeams = TeamBalancer.formatTeamsForDisplay(distribution.teams);
-        
+
         // Clear previous results
         teamsDisplay.innerHTML = '';
-        
+
         // Add dynamic styling for captain highlights
         const captainStyle = document.createElement('style');
         captainStyle.textContent = `
@@ -693,14 +806,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 color: var(--primary-color);
                 font-size: 1.1em;
             }
-            
+
             .captain-indicator {
                 color: var(--primary-color);
                 margin-right: 8px;
                 font-size: 1.2em;
                 text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
             }
-            
+
             .captain-row {
                 background: linear-gradient(to right, rgba(52, 152, 219, 0.15), rgba(52, 152, 219, 0.05));
                 border-left: 3px solid var(--primary-color);
@@ -708,7 +821,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 padding: 8px !important;
                 margin: 4px 0;
             }
-            
+
             .captain-badge {
                 background-color: var(--primary-color);
                 color: white;
@@ -723,51 +836,51 @@ document.addEventListener('DOMContentLoaded', function() {
                 vertical-align: middle;
                 box-shadow: 1px 1px 3px rgba(0,0,0,0.1);
             }
-            
+
             .team-players li {
                 transition: background-color 0.2s ease;
             }
-            
+
             .team-players li:hover {
                 background-color: rgba(52, 152, 219, 0.05);
             }
-            
+
             .team-players li.captain-row:hover {
                 background: linear-gradient(to right, rgba(52, 152, 219, 0.2), rgba(52, 152, 219, 0.1));
             }
         `;
         document.head.appendChild(captainStyle);
-        
+
         // Add teams to display
         formattedTeams.forEach(team => {
             const teamCard = document.createElement('div');
             teamCard.className = 'team-card';
-            
+
             const teamHeader = document.createElement('div');
             teamHeader.className = 'team-header';
-            
+
             const teamTitle = document.createElement('span');
             teamTitle.textContent = `Team ${team.teamNumber}`;
-            
+
             const teamStrength = document.createElement('span');
             teamStrength.textContent = `Strength: ${team.totalStrength}`;
-            
+
             teamHeader.appendChild(teamTitle);
             teamHeader.appendChild(teamStrength);
-            
+
             const playersList = document.createElement('ul');
             playersList.className = 'team-players';
-            
+
             team.players.forEach(player => {
                 const playerItem = document.createElement('li');
-                
+
                 // Apply special styling to captain row
                 if (player.isCaptain) {
                     playerItem.classList.add('captain-row');
                 }
-                
+
                 const playerInfo = document.createElement('span');
-                
+
                 // Add star indicator for captains
                 if (player.isCaptain) {
                     const captainIndicator = document.createElement('span');
@@ -775,7 +888,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     captainIndicator.innerHTML = '★'; // Star symbol
                     playerInfo.appendChild(captainIndicator);
                 }
-                
+
                 // Create player name with special styling for captains
                 const playerName = document.createElement('span');
                 playerName.textContent = player.name;
@@ -783,7 +896,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     playerName.className = 'player-captain';
                 }
                 playerInfo.appendChild(playerName);
-                
+
                 // Add captain badge if player is captain
                 if (player.isCaptain) {
                     const captainBadge = document.createElement('span');
@@ -791,22 +904,22 @@ document.addEventListener('DOMContentLoaded', function() {
                     captainBadge.textContent = 'Captain';
                     playerInfo.appendChild(captainBadge);
                 }
-                
+
                 const playerTier = document.createElement('span');
                 playerTier.textContent = `Tier ${player.tier}`;
-                
+
                 playerItem.appendChild(playerInfo);
                 playerItem.appendChild(playerTier);
-                
+
                 playersList.appendChild(playerItem);
             });
-            
+
             teamCard.appendChild(teamHeader);
             teamCard.appendChild(playersList);
-            
+
             teamsDisplay.appendChild(teamCard);
         });
-        
+
         // Update metrics display
         metricsDisplay.strengthVariance.textContent = distribution.strengthVariance.toFixed(2);
         metricsDisplay.strengthDiff.textContent = distribution.strengthDiff;
@@ -821,22 +934,22 @@ document.addEventListener('DOMContentLoaded', function() {
         // Reset manual entry form
         playersContainer.innerHTML = '';
         addPlayerRow();
-        
+
         // Reset CSV data
         csvData = null;
         csvPreview.innerHTML = '<p>CSV data will appear here</p>';
         csvFileInput.value = '';
-        
+
         // Reset team configuration
         numTeamsInput.value = 2;
         document.getElementById('strategy-round-robin').checked = true;
-        
+
         // Hide results
         resultsContainer.classList.remove('active');
-        
+
         // Clear error messages
         setErrorMessage('');
-        
+
         // Reset current results
         currentResults = null;
     }
@@ -846,36 +959,36 @@ document.addEventListener('DOMContentLoaded', function() {
      */
     function copyResultsToClipboard() {
         if (!currentResults) return;
-        
+
         try {
             let text = `Team Distributions (${currentResults.name}):\n\n`;
-            
+
             currentResults.teams.forEach((team, index) => {
                 text += `Team ${index + 1} (Total Strength: ${calculateTeamStrength(team)}):\n`;
                 text += '-'.repeat(40) + '\n';
-                
+
                 // Sort players by tier ranking (from highest to lowest)
                 const tierOrder = {
                     'S+': 0, 'S': 1, 'S/A': 2, 'A': 3, 'A/B': 4, 'B': 5, 'C': 6, 'D': 7, 'F': 8
                 };
-                
+
                 const sortedTeam = [...team].sort((a, b) => tierOrder[a.tier] - tierOrder[b.tier]);
-                
+
                 sortedTeam.forEach(player => {
                     const captainMark = player.isCaptain ? ' [Captain]' : '';
                     text += `${player.name}${captainMark} (Tier ${player.tier})\n`;
                 });
-                
+
                 text += '\n';
             });
-            
+
             text += 'Evaluation Metrics:\n';
             text += '-'.repeat(40) + '\n';
             text += `Strength variance: ${currentResults.strengthVariance.toFixed(2)}\n`;
             text += `Max strength difference: ${currentResults.strengthDiff}\n`;
             text += `Tier imbalance score: ${currentResults.tierImbalance.toFixed(2)}\n`;
             text += `Overall balance score: ${currentResults.score.toFixed(2)} (lower is better)\n`;
-            
+
             // Copy to clipboard
             navigator.clipboard.writeText(text)
                 .then(() => {
@@ -905,21 +1018,21 @@ document.addEventListener('DOMContentLoaded', function() {
      */
     function downloadResults() {
         if (!currentResults) return;
-        
+
         try {
             const csvContent = TeamBalancer.generateResultsCSV(currentResults.teams);
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
-            
+
             const link = document.createElement('a');
             link.setAttribute('href', url);
             link.setAttribute('download', 'team_results.csv');
             link.style.visibility = 'hidden';
-            
+
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-            
+
             showToast('Results downloaded as CSV');
         } catch (error) {
             console.error('Download error:', error);
@@ -932,21 +1045,21 @@ document.addEventListener('DOMContentLoaded', function() {
      */
     function downloadTemplate(e) {
         e.preventDefault();
-        
+
         try {
             const templateContent = TeamBalancer.createCSVTemplate();
             const blob = new Blob([templateContent], { type: 'text/csv;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
-            
+
             const link = document.createElement('a');
             link.setAttribute('href', url);
             link.setAttribute('download', 'players_template.csv');
             link.style.visibility = 'hidden';
-            
+
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-            
+
             showToast('Template downloaded');
         } catch (error) {
             console.error('Template download error:', error);
@@ -971,7 +1084,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function showToast(message, isError = false) {
         // Create toast element if it doesn't exist
         let toast = document.getElementById('toast');
-        
+
         if (!toast) {
             toast = document.createElement('div');
             toast.id = 'toast';
@@ -987,14 +1100,14 @@ document.addEventListener('DOMContentLoaded', function() {
             toast.style.transition = 'opacity 0.3s';
             document.body.appendChild(toast);
         }
-        
+
         // Set toast style based on type
         toast.style.backgroundColor = isError ? '#e74c3c' : '#2ecc71';
-        
+
         // Set message and show toast
         toast.textContent = message;
         toast.style.opacity = '1';
-        
+
         // Hide toast after 3 seconds
         setTimeout(() => {
             toast.style.opacity = '0';
