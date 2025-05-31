@@ -257,7 +257,7 @@ function evaluateTeams(teams) {
  */
 function distributeTeamsRoundRobin(players, numTeams, playersPerTeam) {
     // Separate captains from regular players
-    const captains = players.filter(player => player.isCaptain);
+    const captains = sortPlayersByScoreWithShuffling(players.filter(player => player.isCaptain)).reverse();
     const nonCaptains = players.filter(player => !player.isCaptain);
 
     // Initialize teams
@@ -271,13 +271,15 @@ function distributeTeamsRoundRobin(players, numTeams, playersPerTeam) {
     // Sort remaining players by score in descending order
     const sortedPlayers = sortPlayersByScoreWithShuffling(nonCaptains);
 
-    // If we have fewer captains than teams, distribute top players to remaining teams
-    const teamsWithoutCaptains = teams.filter(team => team.length === 0);
-    const topPlayers = sortedPlayers.splice(0, teamsWithoutCaptains.length);
+    if (captains.length > 0) {
+        // If we have fewer captains than teams, distribute top players to remaining teams
+        const teamsWithoutCaptains = teams.filter(team => team.length === 0);
+        const topPlayers = sortedPlayers.splice(0, teamsWithoutCaptains.length);
 
-    teamsWithoutCaptains.forEach((team, index) => {
-        team.push(topPlayers[index]);
-    });
+        teamsWithoutCaptains.forEach((team, index) => {
+            team.push(topPlayers[index]);
+        });
+    }
 
     // Remaining rounds: snake draft
     let roundNum = 1;
@@ -318,7 +320,7 @@ function distributeTeamsRoundRobin(players, numTeams, playersPerTeam) {
  */
 function distributeTeamsRandom(players, numTeams, playersPerTeam) {
     // Separate captains from regular players
-    const captains = players.filter(player => player.isCaptain);
+    const captains = sortPlayersByScoreWithShuffling(players.filter(player => player.isCaptain)).reverse();
     const nonCaptains = players.filter(player => !player.isCaptain);
 
     // Initialize teams
@@ -372,23 +374,7 @@ function distributeTeamsRandom(players, numTeams, playersPerTeam) {
 }
 
 function sortPlayersByScoreWithShuffling(players) {
-    const sortedPlayers = [];
-    // Sort remaining players by tier
-    const playersByTier = {};
-    players.forEach(player => {
-        if (!playersByTier[player.tier]) {
-            playersByTier[player.tier] = [];
-        }
-        playersByTier[player.tier].push(player);
-    });
-    DEFAULT_TIER_ORDER.forEach(tier => {
-        if (tier in playersByTier) {
-            const playersInTier = [...playersByTier[tier]];
-            playersInTier.sort( () => Math.random()-0.5 );
-            sortedPlayers.push(...playersInTier);
-        }
-    });
-    return sortedPlayers;
+    return players.sort((a,b) => a.score - b.score === 0 ? Math.random() - 0.5 : b.score - a.score);
 }
 
 /**
@@ -400,7 +386,7 @@ function sortPlayersByScoreWithShuffling(players) {
  */
 function distributeTeamsSnake(players, numTeams, playersPerTeam) {
     // Separate captains from regular players
-    const captains = players.filter(player => player.isCaptain);
+    const captains = sortPlayersByScoreWithShuffling(players.filter(player => player.isCaptain)).reverse();
     const nonCaptains = players.filter(player => !player.isCaptain);
 
     // Initialize teams
@@ -417,7 +403,7 @@ function distributeTeamsSnake(players, numTeams, playersPerTeam) {
     // Determine the starting position for the snake draft
     // Skip teams that already have a captain
     let currentIndex = 0;
-    let initialTeamsFilled = false;
+    let initialTeamsFilled = false || captains.length === 0;
 
     // First, fill teams without captains
     while (!initialTeamsFilled && sortedPlayers.length > 0) {
@@ -436,7 +422,7 @@ function distributeTeamsSnake(players, numTeams, playersPerTeam) {
 
     while (sortedPlayers.length > 0) {
         // Determine draft order (forward or backward)
-        const teamIndices = roundNum % 2 === 0
+        const teamIndices = roundNum % 2 === 1
             ? Array.from({ length: numTeams }, (_, i) => i)
             : Array.from({ length: numTeams }, (_, i) => numTeams - 1 - i);
 
@@ -470,7 +456,7 @@ function distributeTeamsSnake(players, numTeams, playersPerTeam) {
  */
 function distributeTeamsCluster(players, numTeams, playersPerTeam) {
     // Separate captains from regular players
-    const captains = players.filter(player => player.isCaptain);
+    const captains = sortPlayersByScoreWithShuffling(players.filter(player => player.isCaptain)).reverse();
     const nonCaptains = players.filter(player => !player.isCaptain);
 
     // Initialize teams
@@ -485,7 +471,7 @@ function distributeTeamsCluster(players, numTeams, playersPerTeam) {
     const sortedPlayers = sortPlayersByScoreWithShuffling(nonCaptains);
 
     // Fill any teams that don't have captains with the top non-captain players
-    let captainlessTeamsFilled = false;
+    let captainlessTeamsFilled = false || captains.length === 0;
     let currentIndex = 0;
 
     while (!captainlessTeamsFilled && sortedPlayers.length > 0) {
@@ -633,12 +619,13 @@ function optimizeTeams(teams) {
 /**
  * Create a team distribution using the specified strategy
  * @param {string} strategyName - Name of the distribution strategy
+ * @param {boolean} doOptimizeStrategy - determines whether we should add optimization or not
  * @param {Array<Player>} players - Array of Player objects
  * @param {number} numTeams - Number of teams to create
  * @param {number} playersPerTeam - Number of players per team
  * @returns {TeamDistribution} TeamDistribution object
  */
-function createTeamDistribution(strategyName, players, numTeams, playersPerTeam) {
+function createTeamDistribution(strategyName, doOptimizeStrategy, players, numTeams, playersPerTeam) {
     // Map of strategy names to their corresponding functions and descriptions
     const strategies = {
         'round_robin': {
@@ -674,8 +661,7 @@ function createTeamDistribution(strategyName, players, numTeams, playersPerTeam)
     const initialTeams = strategy.func(players, numTeams, playersPerTeam);
 
     // Optimize the distribution
-    // const optimizedTeams = strategyName === "snake" ? initialTeams : optimizeTeams(initialTeams);
-    const optimizedTeams = initialTeams;
+    const optimizedTeams = strategyName === "snake" || !doOptimizeStrategy ? initialTeams : optimizeTeams(initialTeams);
 
     // Evaluate the distribution
     const evaluation = evaluateTeams(optimizedTeams);

@@ -548,6 +548,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
 
+            const optimizeStrategyElement = document.getElementsByName('strategy-optimization')[0];
+            const doOptimizeStrategy = document.getElementsByName('strategy-optimization')?.[0]?.checked ?? false;
+
             // Get players based on active input method
             let players = [];
 
@@ -563,6 +566,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Create team distribution
             const distribution = TeamBalancer.createTeamDistribution(
                 selectedStrategy,
+                doOptimizeStrategy,
                 players,
                 numTeams,
                 playersPerTeam
